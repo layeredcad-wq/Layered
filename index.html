@@ -292,6 +292,7 @@
     border-bottom:1px solid var(--border);
   }
   .product-thumb svg{width:42%; height:42%; color:var(--accent-glow);}
+  .product-thumb img{width:100%; height:100%; object-fit:cover; display:block;}
   .product-body{padding:20px; display:flex; flex-direction:column; gap:6px; flex:1;}
   .product-title-row{display:flex; align-items:baseline; justify-content:space-between; gap:10px;}
   .product-title-row h4{font-size:15px;}
@@ -917,15 +918,15 @@ const ICONS = {
 };
 
 const PRODUCTS = [
-  { id:'laptop-stand', name:'Portable Laptop Stand', price:9.99, icon:'laptopStand',
+  { id:'laptop-stand', name:'Laptop Stand', price:14, icon:'laptopStand', image:'images/Image.png',
     desc:'Elevated stand engineered for airflow, cable routing, and a stable typing angle.' },
-  { id:'wire-organizer', name:'Ergonomic Cable Winder', price:5.99, icon:'wireOrganizer',
+  { id:'wire-organizer', name:'Wire Collapsible Organizer', price:10, icon:'wireOrganizer', image:'images/wire-organizer.jpg',
     desc:'Fold-flat cable and wire management system that snaps together without tools.' },
-  { id:'shelves', name:'Rotating Shelves', price:9.99, icon:'shelves',
+  { id:'shelves', name:'Shelves', price:12, icon:'shelves', image:'images/shelves.jpg',
     desc:'Stackable modular shelving for filament, tools, and small-parts storage.' },
-  { id:'desk-organizer', name:'Pencil Holder Stand', price:7.99, icon:'deskOrganizer',
+  { id:'desk-organizer', name:'Desk Organizer', price:10, icon:'deskOrganizer', image:'images/desk-organizer.jpg',
     desc:'Compartmentalized tray system for hardware, fasteners, and everyday desk tools.' },
-  { id:'modular-grid', name:'Modular Grid', price:13, icon:'modularGrid',
+  { id:'modular-grid', name:'Modular Grid', price:13, icon:'modularGrid', image:'images/modular-grid.jpg',
     desc:'Interlocking wall-mounted grid panels for fully customizable vertical storage.' },
 ];
 
@@ -973,11 +974,19 @@ function navigateTo(pageId){
 }
 
 /* ============ RENDER: PRODUCTS GRID ============ */
+function productImgError(imgEl, iconKey){
+  imgEl.parentElement.innerHTML = ICONS[iconKey];
+}
+
 function renderProducts(){
   const grid = document.getElementById('product-grid');
   grid.innerHTML = PRODUCTS.map(p => `
     <div class="product-card">
-      <div class="product-thumb">${ICONS[p.icon]}</div>
+      <div class="product-thumb">
+        ${p.image
+          ? `<img src="${p.image}" alt="${p.name}" loading="lazy" onerror="productImgError(this, '${p.icon}')">`
+          : ICONS[p.icon]}
+      </div>
       <div class="product-body">
         <div class="product-title-row"><h4>${p.name}</h4><span class="product-price">$${p.price.toFixed(2)}</span></div>
         <p>${p.desc}</p>
