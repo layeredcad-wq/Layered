@@ -365,6 +365,7 @@
   }
   .preview-stage .pattern-overlay{position:absolute; inset:0; opacity:0.35; transition:opacity .2s ease;}
   .preview-stage .preview-icon{width:46%; height:46%; position:relative; z-index:2; color:var(--accent-glow); transition:color .2s ease, filter .2s ease;}
+  .preview-stage .preview-image{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1;}
   .preview-stage .preview-icon .ring{animation:spin 30s linear infinite;}
   .status-tag{
     position:absolute; bottom:14px; left:14px; z-index:3;
@@ -659,11 +660,12 @@
 
     <div class="builder-layout">
       <div class="preview-panel">
-        <div class="preview-stage">
-          <svg class="pattern-overlay" id="pattern-overlay" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
-          <div class="preview-icon" id="preview-icon"></div>
-          <span class="status-tag"><span class="status-dot"></span> RENDER ENGINE: ACTIVE</span>
-        </div>
+       <div class="preview-stage">
+        <svg class="pattern-overlay" id="pattern-overlay" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+        <div class="preview-icon" id="preview-icon"></div>
+        <img class="preview-image" id="preview-image" alt="" style="display:none;" onerror="previewImgError()">
+        <span class="status-tag"><span class="status-dot"></span> RENDER ENGINE: ACTIVE</span>
+      </div>
         <div class="preview-meta">
           <h3 id="preview-name">Custom Project</h3>
           <span id="preview-price">—</span>
@@ -918,15 +920,15 @@ const ICONS = {
 };
 
 const PRODUCTS = [
-  { id:'laptop-stand', name:'Portable Laptop Stand', price:9.99, icon:'laptopStand', image:'images/Image1.png',
+  { id:'laptop-stand', name:'Portable Laptop Stand', price:9.99, icon:'laptopStand', image:'images/Image1.png', configImage:'images/laptop-stand-config.jpg',
     desc:'Elevated stand engineered for airflow, cable routing, and a stable typing angle.' },
-  { id:'wire-organizer', name:'Ergonomic Cable Winder', price:5.99, icon:'wireOrganizer', image:'images/wire-organizer.jpg',
+  { id:'wire-organizer', name:'Ergonomic Cable Winder', price:5.99, icon:'wireOrganizer', image:'images/wire-organizer.jpg', configImage:'images/wire-organizer-config.jpg',
     desc:'Fold-flat cable and wire management system that snaps together without tools.' },
-  { id:'shelves', name:'Rotating Shelves', price:9.99, icon:'shelves', image:'images/shelves.jpg',
+  { id:'shelves', name:'Rotating Shelves', price:9.99, icon:'shelves', image:'images/shelves.jpg', configImage:'images/laptop-stand-config.jpg',
     desc:'Stackable modular shelving for filament, tools, and small-parts storage.' },
-  { id:'desk-organizer', name:'Desk Organizer', price:7.99, icon:'deskOrganizer', image:'images/Image.png',
+  { id:'desk-organizer', name:'Desk Organizer', price:7.99, icon:'deskOrganizer', image:'images/Image.png', configImage:'images/laptop-stand-config.jpg',
     desc:'Compartmentalized tray system for hardware, fasteners, and everyday desk tools.' },
-  { id:'modular-grid', name:'Modular Grid', price:13, icon:'modularGrid', image:'images/modular-grid.jpg',
+  { id:'modular-grid', name:'Modular Grid', price:13, icon:'modularGrid', image:'images/modular-grid.jpg', configImage:'images/laptop-stand-config.jpg',
     desc:'Interlocking wall-mounted grid panels for fully customizable vertical storage.' },
 ];
 
@@ -1004,9 +1006,24 @@ function renderBuilder(){
   const p = state.product;
   document.getElementById('preview-name').textContent = p ? p.name : 'Custom Project';
   document.getElementById('preview-price').textContent = p ? '$' + p.price.toFixed(2) : 'Quoted after review';
-  document.getElementById('preview-icon').innerHTML = ICONS[p ? p.icon : 'custom'];
-  document.getElementById('builder-order-chip').textContent = 'ID: DRAFT-' + Math.floor(1000 + Math.random()*9000);
 
+  const iconEl = document.getElementById('preview-icon');
+  const imgEl = document.getElementById('preview-image');
+  const patternEl = document.getElementById('pattern-overlay');
+
+  if (p && p.image){
+    imgEl.src = p.image;
+    imgEl.alt = p.name;
+    imgEl.style.display = 'block';
+    iconEl.style.display = 'none';
+    patternEl.style.display = 'none';
+  } else {
+    imgEl.style.display = 'none';
+    iconEl.style.display = '';
+    patternEl.style.display = '';
+  }
+  iconEl.innerHTML = ICONS[p ? p.icon : 'custom'];
+  document.getElementById('builder-order-chip').textContent = 'ID: DRAFT-' + Math.floor(1000 + Math.random()*9000);
   // swatches
   const swatchRow = document.getElementById('swatch-row');
   swatchRow.innerHTML = MATERIALS.map(m => `
@@ -1028,7 +1045,11 @@ function renderBuilder(){
   document.getElementById('density-val').textContent = state.density + '%';
   document.getElementById('special-instructions').value = state.specialInstructions;
 }
-
+function previewImgError(){
+  document.getElementById('preview-image').style.display = 'none';
+  document.getElementById('preview-icon').style.display = '';
+  document.getElementById('pattern-overlay').style.display = '';
+}
 function selectMaterial(id){ state.materialId = id; renderBuilder(); }
 function selectGeometry(id){ state.geometryId = id; renderBuilder(); }
 
