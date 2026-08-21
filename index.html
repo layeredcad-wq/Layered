@@ -969,8 +969,7 @@ function renderProducts(){
       <div class="product-body">
         <div class="product-title-row"><h4>${p.name}</h4><span class="product-price">$${p.price.toFixed(2)}</span></div>
         <p>${p.desc}</p>
-        <button class="btn btn-ghost btn-block" onclick="selectProduct('${p.id}')">View Details</button>
-      </div>
+          <a class="btn btn-ghost btn-block" href="${AMAZON_PRODUCT_LINKS[p.id] || '#'}" target="_blank" rel="noopener">View on Amazon</a>      </div>
     </div>
   `).join('');
 }
