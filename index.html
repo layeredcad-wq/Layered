@@ -773,34 +773,13 @@
             </div>
           </div>
 
-          <div class="card">
-            <h4>Payment Terminal</h4>
-            <div class="field" id="f-cardname">
-              <label for="p-cardname">Name on Card</label>
-              <input type="text" id="p-cardname" placeholder="John Doe" required>
-              <p class="field-error">Enter the name on the card.</p>
-            </div>
-            <div class="field" id="f-cardnum">
-              <label for="p-cardnum">Card Number</label>
-              <input type="text" id="p-cardnum" inputmode="numeric" placeholder="1234 5678 9012 3456" maxlength="19" required>
-              <p class="field-error">Enter a valid 16-digit card number.</p>
-            </div>
-            <div class="field-row">
-              <div class="field" id="f-expiry">
-                <label for="p-expiry">Expiry</label>
-                <input type="text" id="p-expiry" placeholder="MM/YY" maxlength="5" required>
-                <p class="field-error">Use MM/YY format.</p>
-              </div>
-              <div class="field" id="f-cvv">
-                <label for="p-cvv">CVV</label>
-                <input type="text" id="p-cvv" inputmode="numeric" placeholder="123" maxlength="4" required>
-                <p class="field-error">Enter a valid CVV.</p>
-              </div>
-            </div>
-            <p class="note warn">Demo payment terminal — no real transaction is processed. See the setup notes for connecting a live payment processor.</p>
+                    <div class="card">
+            <h4>Checkout</h4>
+            <p style="font-size:13.5px; color:var(--text-dim);">
+              Purchases are completed on Amazon. After you submit your build details below, we'll take you straight to the Amazon listing for this product to finish checkout.
+            </p>
           </div>
-
-          <button type="submit" class="btn btn-primary btn-block btn-lg">Initialize Production</button>
+          <button type="submit" class="btn btn-primary btn-block btn-lg">Continue to Amazon</button> 
         </form>
       </div>
 
@@ -858,8 +837,9 @@
       </div>
 
       <div class="confirm-actions">
+        <a class="btn btn-primary" id="amazon-link" href="#" target="_blank" rel="noopener">Complete Purchase on Amazon</a>
         <a class="btn btn-ghost" id="mailto-fallback" href="#">Open Email Copy</a>
-        <button class="btn btn-primary" onclick="resetAndGoHome()">Return Home</button>
+        <button class="btn btn-ghost" onclick="resetAndGoHome()">Return Home</button>
       </div>
     </div>
   </section>
@@ -893,12 +873,12 @@ const EMAILJS_SERVICE_ID   = 'service_hj6jsat';
 const EMAILJS_TEMPLATE_CUSTOMER = 'template_so9ggzb';
 const EMAILJS_TEMPLATE_OWNER    = 'template_9tyfy8e';
 const OWNER_EMAIL = 'layeredcad@gmail.com';
-const STRIPE_PAYMENT_LINKS = {
-  'laptop-stand':    'https://buy.stripe.com/test_5kQ6oIaag5NG9hL6B0fAc06',
-  'wire-organizer':  'https://buy.stripe.com/test_dRm4gA1DKfog2TnbVkfAc05',
-  'shelves':         'https://buy.stripe.com/test_dRm5kE1DK7VO0Lf6B0fAc04',
-  'desk-organizer':  'https://buy.stripe.com/test_3cIcN6dms3Fy8dH5wWfAc03',
-  'modular-grid':    'https://buy.stripe.com/PASTE_MODULAR_GRID_LINK',
+const AMAZON_PRODUCT_LINKS = {
+  'laptop-stand':    'https://www.amazon.com/dp/B0HDGXFQ6S',
+  'wire-organizer':  'https://www.amazon.com/dp/B0HDHKC35G',
+  'shelves':         'https://www.amazon.com/dp/B0HFR8FCBJ',
+  'desk-organizer':  'https://www.amazon.com/dp/B0HDHC9MZK',
+  'modular-grid':    'https://www.amazon.com/dp/PASTE_ASIN_HERE',
 };
 
 let emailjsReady = false;
@@ -1092,22 +1072,8 @@ function setFieldValid(fieldId, valid){
 }
 function isEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 
-document.getElementById('p-cardnum').addEventListener('input', e => {
-  let digits = e.target.value.replace(/\D/g,'').slice(0,16);
-  e.target.value = digits.replace(/(.{4})/g,'$1 ').trim();
-});
-document.getElementById('p-expiry').addEventListener('input', e => {
-  let digits = e.target.value.replace(/\D/g,'').slice(0,4);
-  if (digits.length >= 3) digits = digits.slice(0,2) + '/' + digits.slice(2);
-  e.target.value = digits;
-});
-document.getElementById('p-cvv').addEventListener('input', e => {
-  e.target.value = e.target.value.replace(/\D/g,'').slice(0,4);
-});
-
 document.getElementById('order-form').addEventListener('submit', function(e){
   e.preventDefault();
-
   const fullName = document.getElementById('o-fullname').value.trim();
   const email = document.getElementById('o-email').value.trim();
   const street = document.getElementById('o-street').value.trim();
@@ -1115,11 +1081,6 @@ document.getElementById('order-form').addEventListener('submit', function(e){
   const st = document.getElementById('o-state').value.trim();
   const zip = document.getElementById('o-zip').value.trim();
   const country = document.getElementById('o-country').value.trim();
-  const cardName = document.getElementById('p-cardname').value.trim();
-  const cardNum = document.getElementById('p-cardnum').value.replace(/\s/g,'');
-  const expiry = document.getElementById('p-expiry').value.trim();
-  const cvv = document.getElementById('p-cvv').value.trim();
-
   let ok = true;
   ok = setFieldValid('f-fullname', fullName.length > 1) && ok;
   ok = setFieldValid('f-email', isEmail(email)) && ok;
@@ -1128,17 +1089,11 @@ document.getElementById('order-form').addEventListener('submit', function(e){
   ok = setFieldValid('f-state', st.length > 1) && ok;
   ok = setFieldValid('f-zip', zip.length > 2) && ok;
   ok = setFieldValid('f-country', country.length > 1) && ok;
-  ok = setFieldValid('f-cardname', cardName.length > 1) && ok;
-  ok = setFieldValid('f-cardnum', /^\d{16}$/.test(cardNum)) && ok;
-  ok = setFieldValid('f-expiry', /^\d{2}\/\d{2}$/.test(expiry)) && ok;
-  ok = setFieldValid('f-cvv', /^\d{3,4}$/.test(cvv)) && ok;
-
   if (!ok){
     const firstInvalid = document.querySelector('.field.invalid');
     if (firstInvalid) firstInvalid.scrollIntoView({ behavior:'smooth', block:'center' });
     return;
   }
-
   const order = {
     orderId: generateOrderId(),
     customer: { fullName, email, street, city, state: st, zip, country },
@@ -1153,11 +1108,14 @@ document.getElementById('order-form').addEventListener('submit', function(e){
     }
   };
   state.orderId = order.orderId;
-
   sendConfirmationEmails(order);
   showConfirmation(order);
-});
 
+  const amazonLink = state.product ? AMAZON_PRODUCT_LINKS[state.product.id] : null;
+  if (amazonLink){
+    window.open(amazonLink, '_blank', 'noopener');
+  }
+});
 function generateOrderId(){
   const year = new Date().getFullYear();
   const rand = Math.floor(1000 + Math.random()*9000);
@@ -1185,7 +1143,16 @@ function showConfirmation(order){
     notesWrap.style.display = 'none';
   }
 
-  document.getElementById('mailto-fallback').href = buildMailtoLink(order);
+    document.getElementById('mailto-fallback').href = buildMailtoLink(order);
+
+  const amazonBtn = document.getElementById('amazon-link');
+  const amazonUrl = state.product ? AMAZON_PRODUCT_LINKS[state.product.id] : null;
+  if (amazonUrl){
+    amazonBtn.href = amazonUrl;
+    amazonBtn.style.display = '';
+  } else {
+    amazonBtn.style.display = 'none';
+  }
 }
 
 function buildMailtoLink(order){
